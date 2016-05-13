@@ -1,0 +1,219 @@
+package com.cinread.rss;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.cinread.rss.adapter.CollectAdapter;
+import com.cinread.rss.adapter.RssFeedAdapter;
+import com.cinread.rss.adapter.SubscribeAdapter;
+import com.cinread.rss.base.UIUtils;
+import com.cinread.rss.bean.CollectInfo;
+import com.cinread.rss.bean.RssFeed;
+import com.cinread.rss.bean.SubscribeInfo;
+import com.cinread.rss.factory.RssFeedParser;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
+import com.lidroid.xutils.exception.DbException;
+
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+public class MainActivity extends Activity implements View.OnClickListener {
+
+    private static final String TAG = "MainActivity";
+    private ImageView           mIvMenu;
+    private ImageView           mIvMore;
+    private TextView            mTvTitle;
+    private TextView            mTvLoading;
+    private ListView            mListView;
+    private List<RssFeed>       mRssFeeds;
+    private List<CollectInfo>   mCollectDatas;
+    private List<SubscribeInfo> mSubscribeDatas;
+    private boolean             flag;
+    private      boolean isShow  = true; //显示Rss主页
+    private      DbUtils db      = UIUtils.getDbManager();
+//        public final String  RSS_URL = "http://www.zhihu.com/rss";
+    public final String  RSS_URL = "http://acg.178.com/s/rss.xml";
+    //        public final String  RSS_URL = "http://news.qq.com/newsgn/rss_newsgn.xml";
+    private List<String> mUrls;
+    private RssFeed feed = null;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initView();
+        initData();
+        initEvent();
+    }
+
+    private void initView() {
+        mTvTitle = (TextView) findViewById(R.id.main_tv_title);
+        mTvLoading = (TextView) findViewById(R.id.loading);
+        mIvMenu = (ImageView) findViewById(R.id.main_iv_menu);
+        mIvMore = (ImageView) findViewById(R.id.main_iv_more);
+        mListView = (ListView) findViewById(R.id.listview);
+    }
+
+    private void initData() {
+        mUrls = new ArrayList<>();
+        String url = RSS_URL;
+        feedRssData(url);
+    }
+
+    private void feedRssData(final String url) {
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                mTvLoading.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    feed = new RssFeedParser().getFeed(url);
+                    mRssFeeds = feed.getAll();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                if (feed == null) {
+                    return;
+                }
+                mListView.setAdapter(new RssFeedAdapter(mRssFeeds, db));
+                mTvLoading.setVisibility(View.GONE);
+            }
+        }.execute();
+    }
+
+    private void initEvent() {
+        mIvMenu.setOnClickListener(this);
+        mIvMore.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v == mIvMenu) {
+            View popuView = View.inflate(UIUtils.getContext(), R.layout.item_menu, null);
+            final PopupWindow popupWindow = new PopupWindow(popuView, 120, 200);
+            popupWindow.setBackgroundDrawable(new ColorDrawable());
+            popupWindow.setFocusable(true);
+            popupWindow.setOutsideTouchable(true);
+            popupWindow.showAsDropDown(v);
+            popuView.findViewById(R.id.menu_tv_feed_add).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    View view = View.inflate(UIUtils.getContext(), R.layout.item_feed, null);
+                    builder.setView(view);
+                    builder.show();
+                    popupWindow.dismiss();
+                }
+            });
+            popuView.findViewById(R.id.menu_tv_feed_all).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!isShow) {
+                        mListView.setAdapter(new RssFeedAdapter(mRssFeeds, db));
+                        mTvTitle.setText("Rss");
+                        isShow = true;
+                    }
+                    popupWindow.dismiss();
+                }
+            });
+        } else if (v == mIvMore) {
+            View popuView = View.inflate(UIUtils.getContext(), R.layout.item_more, null);
+            final PopupWindow popupWindow = new PopupWindow(popuView, 120, 200);
+            popupWindow.setBackgroundDrawable(new ColorDrawable());
+            popupWindow.setFocusable(true);
+            popupWindow.setOutsideTouchable(true);
+            popupWindow.showAsDropDown(v);
+            TextView tvOpen = (TextView) popuView.findViewById(R.id.more_tv_open);
+            TextView tvClose = (TextView) popuView.findViewById(R.id.more_tv_close);
+            tvOpen.setVisibility(flag ? View.VISIBLE : View.GONE);
+            tvClose.setVisibility(!flag ? View.VISIBLE : View.GONE);
+            popuView.findViewById(R.id.more_tv_collect).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        mCollectDatas = db.findAll(Selector.from(CollectInfo.class).orderBy("time", true));
+                    } catch (DbException e) {
+                        e.printStackTrace();
+                    }
+                    mListView.setAdapter(new CollectAdapter(mCollectDatas));
+                    mTvTitle.setText("我的收藏");
+                    isShow = false;
+                    popupWindow.dismiss();
+                }
+            });
+            popuView.findViewById(R.id.more_tv_subscribe).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    loadSubscribeData();
+                    mListView.setAdapter(new SubscribeAdapter(mSubscribeDatas));
+                    mTvTitle.setText("我的订阅");
+                    isShow = false;
+                    popupWindow.dismiss();
+                }
+            });
+            popuView.findViewById(R.id.more_tv_download).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(UIUtils.getContext(), !flag ? "开启" : "关闭", Toast.LENGTH_SHORT).show();
+                    flag = !flag;
+                    popupWindow.dismiss();
+                }
+            });
+            popuView.findViewById(R.id.more_tv_clear).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(UIUtils.getContext(), "清除", Toast.LENGTH_SHORT).show();
+                    popupWindow.dismiss();
+                }
+            });
+        }
+    }
+
+    private void loadSubscribeData() {
+        mSubscribeDatas = new ArrayList<>();
+        for (int i = 0; i < mUrls.size(); i++) {
+            SubscribeInfo info = new SubscribeInfo();
+            String[] str = mUrls.get(i).split("/");
+            StringBuffer sb = new StringBuffer();
+            sb.append("http://").append(str[1]).append("/favicon.ico");
+            info.setCover(sb.toString());
+            info.setTitle(str[1]);
+            mSubscribeDatas.add(info);
+        }
+    }
+
+    private void addFeed(View v) {
+        TextView tvUrl = (TextView) v;
+        mUrls.add("" + tvUrl.getText());
+    }
+}

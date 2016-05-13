@@ -1,0 +1,95 @@
+package com.cinread.rss.ui;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.cinread.rss.R;
+import com.cinread.rss.base.UIUtils;
+import com.cinread.rss.bean.SubscribeInfo;
+import com.cinread.rss.utils.SPUtils;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
+
+import java.util.ArrayList;
+
+/**
+ * @project：Rss
+ * @package：com.cinread.rss.ui
+ * @author：pengjf
+ * @update：2016/4/14
+ * @desc： TODO
+ */
+// Created by pengjf on 2016/4/14.
+public class AddFeedActivity extends Activity {
+
+    private static final String TAG = "AddFeedActivity";
+    private EditText          mEtUrl;
+    private Button            mBtnOk;
+    private ArrayList<String> mUrls;
+    private DbUtils db = UIUtils.getDbManager();
+    private String mUrlname;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.item_feed);
+        initView();
+        initData();
+        initEvent();
+    }
+
+    private void initView() {
+        mEtUrl = (EditText) findViewById(R.id.feed_et_url);
+        mBtnOk = (Button) findViewById(R.id.feed_btn_ok);
+    }
+
+    private void initData() {
+        mUrls = new ArrayList<>();
+    }
+
+    private void initEvent() {
+        mBtnOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                result();
+            }
+        });
+    }
+
+    private void result() {
+        mUrlname = mEtUrl.getText().toString().trim();
+        if (TextUtils.isEmpty(mUrlname)) {
+            Toast.makeText(UIUtils.getContext(), "输入不能为空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mUrls.add(mUrlname);
+        for (int i = 0; i < mUrls.size(); i++) {
+            SubscribeInfo info = new SubscribeInfo();
+            String[] str = mUrls.get(i).split("/");
+            StringBuffer sb = new StringBuffer();
+            String name = str[2];
+            String[] names = name.split("\\.");
+            sb.append("http://").append(names[1] + "." + names[2]).append("/favicon.ico");
+            SPUtils.setString(UIUtils.getContext(), names[1], sb.toString());
+            info.setCover(sb.toString());
+            info.setTitle(names[1]);
+            info.setUrl(mUrls.get(i));
+            try {
+                db.replace(info);
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+        }
+        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        result();
+    }
+}

@@ -1,0 +1,79 @@
+package com.cinread.rss.adapter;
+
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.cinread.rss.R;
+import com.cinread.rss.base.MyBaseAdapter;
+import com.cinread.rss.base.UIUtils;
+import com.cinread.rss.bean.CollectInfo;
+import com.cinread.rss.utils.SPUtils;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
+
+import java.util.List;
+
+/**
+ * @project：Rss
+ * @package：com.cinread.rss
+ * @author：pengjf
+ * @update：2016/4/9
+ * @desc： TODO
+ */
+// Created by pengjf on 2016/4/9.
+public class CollectAdapter extends MyBaseAdapter<CollectInfo> {
+
+    private List<CollectInfo> mDatas;
+    private DbUtils db = UIUtils.getDbManager();
+
+    public CollectAdapter(List<CollectInfo> data) {
+        super(data);
+        this.mDatas = data;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        final ViewHolder holder;
+        if (convertView == null) {
+            holder = new ViewHolder();
+            convertView = View.inflate(UIUtils.getContext(), R.layout.item_collect, null);
+            holder.ivCover = (ImageView) convertView.findViewById(R.id.collect_iv_logo);
+            holder.ivCollect = (ImageView) convertView.findViewById(R.id.collect_iv_collect);
+            holder.tvTitle = (TextView) convertView.findViewById(R.id.collect_tv_title);
+            holder.tvRssname = (TextView) convertView.findViewById(R.id.collect_tv_rssname);
+            holder.tvDesc = (TextView) convertView.findViewById(R.id.collect_tv_desc);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+        final CollectInfo info = mDatas.get(position);
+        holder.ivCover.setImageResource(R.mipmap.ic_logo);
+        holder.ivCollect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //移除我的收藏
+                try {
+                    db.delete(info);
+                    SPUtils.setBoolean(UIUtils.getContext(), "collect" + info.getTitle(), false);
+                    RssAdapter.flag = true;
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        holder.tvTitle.setText(info.getTitle());
+        holder.tvRssname.setText(info.getRssname());
+        holder.tvDesc.setText(info.getDesc());
+        return convertView;
+    }
+
+    private class ViewHolder {
+        ImageView ivCover;
+        ImageView ivCollect;
+        TextView  tvTitle;
+        TextView  tvRssname;
+        TextView  tvDesc;
+    }
+}

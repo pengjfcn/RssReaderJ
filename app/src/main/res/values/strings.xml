@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Rss</string>
+    <string name="twice_exit_app">再按一次退出程序</string>
+    <string name="view_search">请输入关键字</string>
+    <string name="rss_recommend">推荐:(点击添加)</string>
+    <string name="rss_search_result">搜索结果:(点击添加)</string>
+</resources>

@@ -1,0 +1,96 @@
+package com.cinread.rss.adapter;
+
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.cinread.rss.R;
+import com.cinread.rss.base.MyBaseAdapter;
+import com.cinread.rss.base.UIUtils;
+import com.cinread.rss.bean.CollectInfo;
+import com.cinread.rss.bean.RssFeed;
+import com.cinread.rss.utils.FileUtils;
+import com.cinread.rss.utils.SPUtils;
+import com.lidroid.xutils.BitmapUtils;
+import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.exception.DbException;
+
+import java.util.List;
+
+/**
+ * @project：Rss
+ * @package：com.cinread.rss.rss
+ * @author：pengjf
+ * @update：2016/4/13
+ * @desc： TODO
+ */
+// Created by pengjf on 2016/4/13.
+public class RssFeedAdapter extends MyBaseAdapter<RssFeed> {
+
+    private       List<RssFeed> mDatas;
+    public static boolean       flag;
+    private       DbUtils       db;
+
+    public RssFeedAdapter(List<RssFeed> data, DbUtils db) {
+        super(data);
+        this.mDatas = data;
+        this.db = db;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        final ViewHolder holder;
+        if (convertView == null) {
+            holder = new ViewHolder();
+            convertView = View.inflate(UIUtils.getContext(), R.layout.item_rss, null);
+            holder.ivCover = (ImageView) convertView.findViewById(R.id.rss_iv_logo);
+            holder.ivCollect = (ImageView) convertView.findViewById(R.id.rss_iv_collect);
+            holder.tvTitle = (TextView) convertView.findViewById(R.id.rss_tv_title);
+            holder.tvRssname = (TextView) convertView.findViewById(R.id.rss_tv_rssname);
+            holder.tvDesc = (TextView) convertView.findViewById(R.id.rss_tv_desc);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+        RssFeed info = mDatas.get(position);
+        final CollectInfo ci = new CollectInfo();
+        ci.setRssname(info.getRssname());
+        ci.setTime(FileUtils.getTime(System.currentTimeMillis()));
+        String pubdate = info.getPubdate();
+        String time = FileUtils.getTime3(pubdate);
+        ci.setCover(info.getCover());
+        ci.setDesc(time);
+        ci.setTitle(info.getTitle());
+        boolean c = SPUtils.getBoolean(UIUtils.getContext(), "collect" + info.getTitle(), false);
+        holder.ivCollect.setImageResource(c ? R.mipmap.ic_collect_selected : R.mipmap.ic_collect_normal);
+        holder.ivCollect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.ivCollect.setImageResource(flag ? R.mipmap.ic_collect_normal : R.mipmap.ic_collect_selected);
+                //添加到我的收藏
+                try {
+                    db.replace(ci);
+                    SPUtils.setBoolean(UIUtils.getContext(), "collect" + ci.getTitle(), true);
+                    flag = false;
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        BitmapUtils utils = new BitmapUtils(UIUtils.getContext());
+        utils.display(holder.ivCover, info.getCover());
+        holder.tvTitle.setText(info.getTitle());
+        holder.tvRssname.setText(info.getRssname());
+        holder.tvDesc.setText(time);
+        return convertView;
+    }
+
+    private class ViewHolder {
+        ImageView ivCover;
+        ImageView ivCollect;
+        TextView  tvTitle;
+        TextView  tvRssname;
+        TextView  tvDesc;
+    }
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="6dp"
+        android:paddingTop="10dp"
+        android:text="URL"
+        android:textColor="@color/black"/>
+
+    <EditText
+        android:id="@+id/feed_et_url"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:cursorVisible="true"
+        android:gravity="bottom"
+        android:hint="请输入Rss源地址"
+        android:inputType="textUri"
+        android:textColor="@color/black"/>
+
+    <Button
+        android:id="@+id/feed_btn_ok"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="添加"
+        android:textColor="@color/black"/>
+</LinearLayout>

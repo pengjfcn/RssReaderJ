@@ -1,0 +1,58 @@
+package com.cinread.rss.adapter;
+
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.cinread.rss.base.MyBaseAdapter;
+import com.cinread.rss.R;
+import com.cinread.rss.base.UIUtils;
+import com.cinread.rss.bean.SubscribeInfo;
+import com.lidroid.xutils.BitmapUtils;
+
+import java.util.List;
+
+/**
+ * @project：Rss
+ * @package：com.cinread.rss
+ * @author：pengjf
+ * @update：2016/4/9
+ * @desc： TODO
+ */
+// Created by pengjf on 2016/4/9.
+public class SubscribeAdapter extends MyBaseAdapter<SubscribeInfo> {
+
+    private List<SubscribeInfo> mDatas;
+
+    public SubscribeAdapter(List<SubscribeInfo> data) {
+        super(data);
+        this.mDatas = data;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
+        if (convertView == null) {
+            holder = new ViewHolder();
+            convertView = View.inflate(UIUtils.getContext(), R.layout.item_subscribe, null);
+            holder.ivCover = (ImageView) convertView.findViewById(R.id.subscribe_iv_logo);
+            holder.tvTitle = (TextView) convertView.findViewById(R.id.subscribe_tv_title);
+            holder.tvDesc = (TextView) convertView.findViewById(R.id.subscribe_tv_desc);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+        SubscribeInfo info = mDatas.get(position);
+        BitmapUtils utils = new BitmapUtils(UIUtils.getContext());
+        utils.display(holder.ivCover,info.getCover());
+        holder.tvTitle.setText(info.getTitle());
+        return convertView;
+    }
+
+    private class ViewHolder {
+        ImageView ivCover;
+        TextView  tvTitle;
+        TextView  tvDesc;
+    }
+}

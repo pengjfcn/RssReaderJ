@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/irs_tv_rssname"
+        style="@style/NormalText"
+        android:background="@mipmap/bg_tv"
+        android:text="知乎"/>
+
+    <TextView
+        android:id="@+id/irs_tv_rssurl"
+        style="@style/NormalText"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:text="url"/>
+
+</LinearLayout>

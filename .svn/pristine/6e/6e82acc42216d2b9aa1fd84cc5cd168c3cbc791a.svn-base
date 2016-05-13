@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Rss</string>
+    <string name="rss_zhihu">http://www.zhihu.com/rss</string>
+    <string name="rss_qq">http://news.qq.com/newsgn/rss_newsgn.xml</string>
+    <string name="rss_acg178">http://acg.178.com/s/rss.xml</string>
+    <string name="twice_exit_app">再按一次退出程序</string>
+</resources>

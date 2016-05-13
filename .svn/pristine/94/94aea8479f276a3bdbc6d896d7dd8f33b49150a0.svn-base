@@ -1,0 +1,48 @@
+package com.cinread.rss.bean;
+
+/**
+ * @project：Rss
+ * @package：com.cinread.rss
+ * @author：pengjf
+ * @update：2016/4/9
+ * @desc： 订阅
+ */
+// Created by pengjf on 2016/4/9.
+public class SubscribeInfo {
+    private String cover;
+    private String title;
+    private String desc;
+    private String url;
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+}
